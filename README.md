@@ -8,7 +8,7 @@ Current fix (22.12.2020): Sell to drop boxes and not to vendors, clean up your i
 
 ## HOW TO
 
-Download the exe and run it. Thats all.
+Download the program exe from over here https://github.com/bison--/CyberpunkSaveFileWatcher/releases/tag/v0.0.1 and run it. Thats all.
 
 
 ![CyberPunk fave file watcher in acrion](CyberpunkWatcherInAction.png)
