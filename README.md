@@ -1,4 +1,9 @@
 # CyberPunk 2077 SaveFileWatcher
+
+## UPDATE
+Looks like the issue has been fixed and this tool is obsolete: https://www.cyberpunk.net/en/news/37214/hotfix-1-06  
+Maybe ill keep it running anyways to see when my savegame would had been corrupted ^^  
+
 checks your CyberPunk 2077 save files for size to make sure they won't corrupt.  
 It will list all your save games with current size and percentage to 8MB. After that it will keep monitoring your save file directory and show in "real time" (there is a delay to make sure the file was written completely) what the state of your newest/latest save is.
 
