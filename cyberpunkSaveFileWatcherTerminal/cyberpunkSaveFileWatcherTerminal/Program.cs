@@ -13,6 +13,7 @@ namespace cyberpunkSaveFileWatcherTerminal
         static string savePath = "\\Saved Games\\CD Projekt Red\\Cyberpunk 2077";
         static System.IO.FileSystemWatcher fileWatcher = new FileSystemWatcher();
         static System.Timers.Timer checkTimer = new System.Timers.Timer();
+        static int timerBaseInterval = 1500;
         static List<string> changedFiles = new List<string>();
         static NotifyIcon nfi = new NotifyIcon();
         static ContextMenu menu;
@@ -65,7 +66,7 @@ namespace cyberpunkSaveFileWatcherTerminal
             Console.WriteLine("               .;.                        'l;                              .");
             
             Console.WriteLine();
-            Console.WriteLine("CyberPunk save file watcher v0.0.1");
+            Console.WriteLine("CyberPunk save file watcher v0.0.2");
             Console.WriteLine();
 
             Console.ForegroundColor = ConsoleColor.White;
@@ -113,12 +114,16 @@ namespace cyberpunkSaveFileWatcherTerminal
             int countQuickSave = 0;
             int countAutoSave = 0;
             int countManualSave = 0;
+            long totalSaveSize = 0;
 
             System.IO.FileInfo biggestFile = null;
             long biggestSize = 0;
 
-            foreach (string dir in Directory.GetDirectories(savePath)) {
-                Console.WriteLine("**************");
+            List<FileInfo> allSaveFiles = new List<FileInfo>();
+
+            foreach (string dir in Directory.GetDirectories(savePath))
+            {
+                Console.Write(".");
 
                 //Console.WriteLine(dir);
                 countAllDirs++;
@@ -136,17 +141,38 @@ namespace cyberpunkSaveFileWatcherTerminal
                 if (System.IO.File.Exists(saveFile))
                 {
                     FileInfo fInfo = new System.IO.FileInfo(saveFile);
+
+                    totalSaveSize += fInfo.Length;
                     if (fInfo.Length > biggestSize)
                     {
+                        biggestSize = fInfo.Length;
                         biggestFile = fInfo;
                     }
 
-                    showFileStats(fInfo);
+                    allSaveFiles.Add(fInfo);
                 }
             }
 
             Console.WriteLine();
+
+            try
+            {
+                foreach (FileInfo fInfo in allSaveFiles.OrderBy(save => save.LastWriteTime))
+                {
+                    Console.WriteLine("**************");
+                    showFileStats(fInfo);
+                }
+            }
+            catch(Exception e)
+            {
+                consoleWriteLineWarn("ERROR WHILE SCANNING FILES", 100);
+                consoleWriteLineWarn(e.ToString(), 100);
+            }
+
+
+            Console.WriteLine();
             Console.WriteLine("==== stats ====");
+            Console.WriteLine($"AllSavesSize: {BytesToString(totalSaveSize)}");
             Console.WriteLine($"SaveFiles: {countAllDirs}");
             Console.WriteLine($"QuickSaves: {countQuickSave}");
             Console.WriteLine($"AutoSaves: {countAutoSave}");
@@ -174,6 +200,7 @@ namespace cyberpunkSaveFileWatcherTerminal
         static void OnChanged(object source, FileSystemEventArgs e)
         {
             checkTimer.Stop();
+            checkTimer.Interval = timerBaseInterval;
             if (!changedFiles.Contains(e.FullPath))
             {
                 changedFiles.Add(e.FullPath);
@@ -191,6 +218,7 @@ namespace cyberpunkSaveFileWatcherTerminal
         static void OnRenamed(object source, RenamedEventArgs e)
         {
             checkTimer.Stop();
+            checkTimer.Interval = timerBaseInterval;
             if (!changedFiles.Contains(e.FullPath))
             {
                 changedFiles.Add(e.FullPath);
@@ -211,6 +239,15 @@ namespace cyberpunkSaveFileWatcherTerminal
             if (changedFiles.Count == 0)
             {
                 return;
+            }
+            else if (changedFiles.Count == 1)
+            {
+                checkTimer.Interval = timerBaseInterval;
+            }
+            else
+            {
+                // on exit Cyberpunk touches all files, so they would be listed all.... very slowly!
+                checkTimer.Interval = 1;
             }
 
             string checkFile = changedFiles[0];
